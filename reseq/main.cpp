@@ -69,25 +69,28 @@ int main(int argc, char* argv[]) {
     }
 
     if (general_opts_map.count("version")) { // Check if user only wants to know version
-        cerr << "ReSeq version " << RESEQ_VERSION_MAJOR << '.' << RESEQ_VERSION_MINOR << std::endl;
+        cerr << "ReSeq2 version " << RESEQ_VERSION_MAJOR << '.' << RESEQ_VERSION_MINOR << '.'
+             << RESEQ_VERSION_PATCH << std::endl;
         return 0;
     }
 
     string general_usage =
-        string("\nProgram: reseq (REal SEQuence replicator)\n") + "Version: " + to_string(RESEQ_VERSION_MAJOR) + '.' +
-        to_string(RESEQ_VERSION_MINOR) + '\n' + "Contact: Stephan Schmeing <stephan.schmeing@uzh.ch>\n\n" +
-        "Usage:  reseq <command> [options]\n" + "Commands:\n" + "  illuminaPE\t\t" +
+        string("\nProgram: reseq2 (REal SEQuence replicator 2)\n") + "Version: " +
+        to_string(RESEQ_VERSION_MAJOR) + '.' + to_string(RESEQ_VERSION_MINOR) + '.' +
+        to_string(RESEQ_VERSION_PATCH) + '\n' +
+        "Contact: Bernt Popp (original: Stephan Schmeing <stephan.schmeing@uzh.ch>)\n\n" +
+        "Usage:  reseq2 <command> [options]\n" + "Commands:\n" + "  illuminaPE\t\t" +
         "simulates illumina paired-end data\n" + "  queryProfile\t\t" +
-        "queries reseq statistic files for information\n" + "  replaceN\t\t" + "replaces N's in reference\n" +
-        "  seqToIllumina\t\t" + "applies illumina quality and error model to input sequences\n" + "  convertProfile\t" +
-        "converts profiles between text and binary formats\n";
+        "queries reseq2 statistic files for information\n" + "  replaceN\t\t" + "replaces N's in reference\n" +
+        "  seqToIllumina\t\t" + "applies illumina quality and error model to input sequences\n" +
+        "  convertProfile\t" + "converts profiles between text and binary formats\n";
 
     int return_code = 0;
     if (0 == unrecognized_opts.size()) {
         cerr << general_usage << std::endl;
     } else {
-        printInfo << "Running ReSeq version " << RESEQ_VERSION_MAJOR << '.'
-                  << RESEQ_VERSION_MINOR; // Always show version
+        printInfo << "Running ReSeq2 version " << RESEQ_VERSION_MAJOR << '.' << RESEQ_VERSION_MINOR << '.'
+                  << RESEQ_VERSION_PATCH; // Always show version
 
         if ("queryProfile" == unrecognized_opts.at(0)) {
             if (2 < kVerbosityLevel) {
