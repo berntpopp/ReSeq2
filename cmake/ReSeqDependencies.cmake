@@ -4,6 +4,9 @@ include(FetchContent)
 option(RESEQ_ALLOW_FETCHCONTENT "Allow downloading missing dependencies at configure time" ON)
 option(RESEQ_USE_VENDORED_SEQAN "Use the in-tree seqan/ fallback (deprecated)" OFF)
 
+# --- Threads (required for std::thread) ---
+find_package(Threads REQUIRED)
+
 # --- Compression (required, system-provided) ---
 find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)

@@ -32,7 +32,7 @@ target_include_directories(reseq2_lib PUBLIC
 )
 target_link_libraries(reseq2_lib PUBLIC
   skewer_matrix nlopt reseq_seqan
-  ${Boost_LIBRARIES} ZLIB::ZLIB BZip2::BZip2 rt
+  ${Boost_LIBRARIES} ZLIB::ZLIB BZip2::BZip2 Threads::Threads rt
 )
 target_compile_options(reseq2_lib PRIVATE ${PRIVATE_COMPILE_OPTIONS})
 
