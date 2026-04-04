@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository
 
-This is a fork (`berntpopp/ReSeq`) of upstream (`schmeing/ReSeq`). The upstream remote has been removed.
+This is **ReSeq2** (`berntpopp/ReSeq2`), a maintained continuation of the original ReSeq (`schmeing/ReSeq`). The original project is no longer maintained.
 
-**All work stays in the fork.** Never add the upstream remote, create PRs on `schmeing/ReSeq`, or push to it. Use `--repo berntpopp/ReSeq` with all `gh` commands.
+Use `--repo berntpopp/ReSeq2` with all `gh` commands.
 
 ## Build and Test Commands
 
@@ -28,7 +28,7 @@ The build requires: C++20 compiler (GCC 10+, Clang 12+), CMake 3.16+, Boost 1.48
 
 ## Architecture
 
-ReSeq is a bioinformatics tool that learns error/quality profiles from real Illumina paired-end sequencing data and uses them to simulate realistic reads.
+ReSeq2 is a bioinformatics tool that learns error/quality profiles from real Illumina paired-end sequencing data and uses them to simulate realistic reads.
 
 ### Commands (entry point: `reseq/main.cpp`)
 
