@@ -179,7 +179,7 @@ jobs:
         run: cmake --build build -j$(nproc)
 
       - name: Run tests in shuffled order
-        run: build/bin/reseq_test --gtest_shuffle --gtest_random_seed=0
+        run: build/bin/reseq2_test --gtest_shuffle --gtest_random_seed=0
 
   format-check:
     runs-on: ubuntu-24.04

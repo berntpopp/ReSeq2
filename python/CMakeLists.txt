@@ -67,7 +67,7 @@ target_link_libraries(
   DataStats
   PRIVATE
     Python3::Module
-    reseq_lib
+    reseq2_lib
 )
 
 install(TARGETS DataStats DESTINATION lib)

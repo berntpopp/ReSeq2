@@ -27,9 +27,9 @@ class RegressionTest : public BasicTestClass {
     void SetUp() override {
         BasicTestClass::SetUp();
 
-        // Locate the reseq binary
-        reseq_bin_ = std::filesystem::path(RESEQ_BINARY_DIR) / "reseq";
-        ASSERT_TRUE(std::filesystem::exists(reseq_bin_)) << "reseq binary not found at: " << reseq_bin_;
+        // Locate the reseq2 binary
+        reseq_bin_ = std::filesystem::path(RESEQ_BINARY_DIR) / "reseq2";
+        ASSERT_TRUE(std::filesystem::exists(reseq_bin_)) << "reseq2 binary not found at: " << reseq_bin_;
 
         // Locate test directory via BasicTestClass::GetTestDir
         std::string test_dir_str;
