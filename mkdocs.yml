@@ -1,0 +1,136 @@
+# ReSeq2 Documentation Configuration
+# https://squidfunk.github.io/mkdocs-material/
+
+site_name: ReSeq2
+site_description: Realistic Illumina sequencing simulator — learns from real data, generates synthetic reads
+site_author: Bernt Popp
+site_url: https://berntpopp.github.io/ReSeq2/
+
+repo_name: berntpopp/ReSeq2
+repo_url: https://github.com/berntpopp/ReSeq2
+edit_uri: edit/master/docs/
+
+copyright: Copyright &copy; 2026 Bernt Popp
+
+theme:
+  name: material
+  language: en
+
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/dna
+
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Link to this section
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      auto_append:
+        - docs/includes/abbreviations.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+
+  - User Guide:
+    - Commands: user-guide/commands.md
+    - Parameters: user-guide/parameters.md
+    - File Formats: user-guide/file-formats.md
+    - Profiles: user-guide/profiles.md
+    - Error Model: user-guide/error-model.md
+    - FAQ: user-guide/faq.md
+
+  - Developer:
+    - Building: developer/building.md
+    - Architecture: developer/architecture.md
+    - Contributing: developer/contributing.md
+
+  - About:
+    - Citation: about/citation.md
+    - Attribution: about/attribution.md
+    - License: about/license.md
+    - Changelog: about/changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/berntpopp/ReSeq2
+      name: ReSeq2 on GitHub
+
+  generator: false
