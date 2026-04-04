@@ -199,8 +199,8 @@ jobs:
       - name: Check Python formatting
         run: |
           pip install ruff
-          ruff check python/*.py
-          ruff format --check python/*.py
+          ruff check python/
+          ruff format --check python/
 
   lint:
     runs-on: ubuntu-24.04

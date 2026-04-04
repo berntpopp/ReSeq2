@@ -62,6 +62,7 @@ graph TD
 
 | Component | Responsibility |
 |---|---|
+| `BamIngestionEngine` | BAM file reading and record processing pipeline |
 | `DataStats` | Top-level aggregator that orchestrates all sub-stats during data collection |
 | `AdapterStats` | Adapter detection and trimming statistics |
 | `CoverageStats` | Per-position coverage and GC-bias modeling |
@@ -69,6 +70,7 @@ graph TD
 | `FragmentDistributionStats` | Fragment length distribution modeling |
 | `FragmentDuplicationStats` | PCR duplicate rate estimation |
 | `QualityStats` | Base quality score distribution modeling |
+| `ReadSequenceStats` | Read-level sequence statistics collection |
 | `TileStats` | Flowcell tile-level variation tracking |
 
 ### Reference and Context
@@ -100,11 +102,13 @@ External dependencies are resolved through a two-tier strategy defined in `cmake
 1. **`find_package()` first** --- CMake checks if the dependency is already installed on the system.
 2. **`FetchContent` fallback** --- If not found locally, CMake downloads and builds the dependency at configure time.
 
+SeqAn and NLopt use this two-tier strategy. GoogleTest is always fetched via `FetchContent` (no `find_package()` fallback) to ensure a consistent test framework version.
+
 | Dependency | License | Resolution |
 |---|---|---|
 | SeqAn 2.5.2 | BSD 3-Clause | `find_package()` / `FetchContent` |
-| GoogleTest | BSD 3-Clause | `FetchContent` |
-| NLopt | MIT | `FetchContent` |
+| GoogleTest | BSD 3-Clause | `FetchContent` only |
+| NLopt | MIT | `find_package()` / `FetchContent` |
 | skewer | MIT | Vendored (local modifications, see `skewer/MODIFICATIONS.md`) |
 
 !!! info "Why skewer is vendored"

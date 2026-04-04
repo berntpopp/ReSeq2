@@ -156,6 +156,6 @@ ReSeq2 ships Python utilities for plotting and read-name preparation in `python/
 | Option | Default | Description |
 |---|---|---|
 | `CMAKE_BUILD_TYPE` | `RelWithDebInfo` | Build type (`Debug`, `Release`, `RelWithDebInfo`) |
-| `DRESEQ_BUILD_PYTHON` | `OFF` | Build Python SWIG bindings |
-| `DCODE_COVERAGE` | `OFF` | Enable code coverage instrumentation |
+| `RESEQ_BUILD_PYTHON` | `OFF` | Build Python SWIG bindings |
+| `CODE_COVERAGE` | `OFF` | Enable code coverage instrumentation |
 | `CMAKE_EXPORT_COMPILE_COMMANDS` | `ON` (via Make) | Generate `compile_commands.json` for clang-tidy |

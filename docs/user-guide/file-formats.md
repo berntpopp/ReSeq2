@@ -20,7 +20,7 @@ Standard BAM format alignment file. The reference information in the BAM header 
 
 ## Adapter File (`.fa`)
 
-FASTA file listing the sequences of possibly used adapters. Keep this list short to reduce false identifications. Example adapter files are provided in the `adapter/` directory of the repository.
+FASTA file listing the sequences of possibly used adapters. Keep this list short to reduce false identifications. Example adapter files are provided in the `adapters/` directory of the repository.
 
 !!! tip
     The strand direction of adapters does not matter --- ReSeq2 always checks both the given sequence and its reverse complement, since directionality depends on the sequencing machine.

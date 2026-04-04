@@ -38,6 +38,7 @@ ReSeq2 is a bioinformatics tool that learns error/quality profiles from real Ill
 | `seqToIllumina` | Apply Illumina error/quality model to input sequences (no coverage model) |
 | `queryProfile` | Extract info from `.reseq` stats files (fragment length bias, ref seq bias, etc.) |
 | `replaceN` | Replace ambiguous bases (N) in reference sequences |
+| `convertProfile` | Convert between binary and text profile formats |
 
 ### Core Components (in `reseq/`)
 

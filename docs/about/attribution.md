@@ -4,7 +4,7 @@
 
 ReSeq was created by **Stephan Schmeing** and **Mark D. Robinson** at the University of Zurich.
 
-- **Paper:** Schmeing, S., Robinson, M.D. ReSeq simulates realistic Illumina high-throughput sequencing data. *Genome Biology* 22, 163 (2021). [DOI: 10.1186/s13059-021-02265-7](https://doi.org/10.1186/s13059-021-02265-7)
+- **Paper:** Schmeing, S., Robinson, M.D. ReSeq simulates realistic Illumina high-throughput sequencing data. *Genome Biology* 22, 67 (2021). [DOI: 10.1186/s13059-021-02265-7](https://doi.org/10.1186/s13059-021-02265-7)
 - **Original repository:** [github.com/schmeing/ReSeq](https://github.com/schmeing/ReSeq)
 
 ## What Changed in ReSeq2

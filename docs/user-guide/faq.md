@@ -3,18 +3,9 @@
 Frequently asked questions about ReSeq2.
 
 ??? question "Can I simulate more than the default 128 alleles?"
-    Yes. Set `kMaxAlleles` in `reseq/Reference.h` to any multiple of 64. After recompilation the new maximum number of alleles will be your chosen value.
 
-    ```cpp
-    // reseq/Reference.h
-    static constexpr uintAlleleBitArray kMaxAlleles = 256;  // was 128
-    ```
-
-    Then rebuild:
-
-    ```bash
-    cmake --build build -j$(nproc)
-    ```
+    Yes. Set `kMaxAlleles` in the `Variant` struct in `reseq/Reference.h` to any multiple of 64.
+    After recompilation the new maximum number of alleles will be your chosen value.
 
 ??? question "Can I simulate exome sequencing?"
     Yes. Create a reference that contains only the exons as individual scaffolds. Use `--refBiasFile` to specify the coverage of individual exons.

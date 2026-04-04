@@ -6,7 +6,7 @@
 |---|---|---|
 | C++20 compiler (GCC or Clang) | GCC 10+ / Clang 12+ | `sudo apt install build-essential` |
 | CMake | 3.16+ | `sudo apt install cmake` |
-| Boost (serialization, program_options, filesystem, system, math) | 1.48+ | `sudo apt install libboost-all-dev` |
+| Boost (serialization, program_options, filesystem, system, math, iostreams) | 1.48+ | `sudo apt install libboost-all-dev` |
 | ZLIB | --- | `sudo apt install zlib1g-dev` |
 | BZip2 | --- | `sudo apt install libbz2-dev` |
 | Git | --- | `sudo apt install git` |
