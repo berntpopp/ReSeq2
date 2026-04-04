@@ -31,7 +31,7 @@ target_include_directories(reseq2_lib PUBLIC
   "${PROJECT_SOURCE_DIR}/reseq"
 )
 target_link_libraries(reseq2_lib PUBLIC
-  skewer_matrix nlopt reseq_seqan GTest::gtest
+  skewer_matrix nlopt reseq_seqan
   ${Boost_LIBRARIES} ZLIB::ZLIB BZip2::BZip2 rt
 )
 target_compile_options(reseq2_lib PRIVATE ${PRIVATE_COMPILE_OPTIONS})
@@ -48,7 +48,6 @@ install(TARGETS reseq2
   ARCHIVE DESTINATION lib)
 
 
-option(RESEQ_BUILD_TESTS "Build test binary" ON)
 if(RESEQ_BUILD_TESTS)
   add_executable(reseq2_test
     test_main.cpp

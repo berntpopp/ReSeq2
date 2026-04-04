@@ -14,15 +14,17 @@ find_package(Boost 1.48.0 REQUIRED
   filesystem iostreams math_c99 math_c99f math_c99l
   math_tr1 math_tr1f math_tr1l program_options serialization system)
 
-# --- GoogleTest (dev-only, always FetchContent) ---
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG v1.15.2
-)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+# --- GoogleTest (dev-only, skipped when RESEQ_BUILD_TESTS=OFF) ---
+if(RESEQ_BUILD_TESTS)
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.15.2
+  )
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+endif()
 
 # --- NLopt (find_package first, FetchContent fallback) ---
 find_package(NLopt QUIET)

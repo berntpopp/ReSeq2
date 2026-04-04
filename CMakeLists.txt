@@ -24,6 +24,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Export compile commands for clang-tidy
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Build options (declared before dependency resolution so they can gate fetches)
+option(RESEQ_BUILD_TESTS "Build test binary" ON)
+option(RESEQ_BUILD_PYTHON "Build Python bindings (requires SWIG 3+ and python3-dev)" OFF)
+option(CODE_COVERAGE "Enable code coverage instrumentation (GCC only)" OFF)
+
 # Centralized dependency resolution
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(ReSeqDependencies)
@@ -57,12 +62,10 @@ configure_file(
 	"${PROJECT_BINARY_DIR}/CMakeConfig.h"
 )
 
-# Build options (declared before add_subdirectory so they are available)
-option(RESEQ_BUILD_PYTHON "Build Python bindings (requires SWIG 3+ and python3-dev)" OFF)
-option(CODE_COVERAGE "Enable code coverage instrumentation (GCC only)" OFF)
-
 # Enable CTest (must be in root CMakeLists.txt for ctest to discover tests)
-enable_testing()
+if(RESEQ_BUILD_TESTS)
+  enable_testing()
+endif()
 
 # Subdirectories
 add_subdirectory(skewer)
