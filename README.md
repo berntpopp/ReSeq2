@@ -16,7 +16,7 @@ git clone https://github.com/berntpopp/ReSeq2.git && cd ReSeq2
 cmake -S . -B build && cmake --build build -j$(nproc)
 
 # Full pipeline: learn from real data and simulate
-reseq illuminaPE -j 32 -r reference.fa -b mappings.bam \
+reseq2 illuminaPE -j 32 -r reference.fa -b mappings.bam \
   -1 simulated_R1.fq -2 simulated_R2.fq
 ```
 

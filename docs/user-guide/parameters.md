@@ -5,7 +5,7 @@ Complete option reference for every ReSeq2 command. Select a tab to view the par
 === "illuminaPE"
 
     ```
-    reseq illuminaPE [options]
+    reseq2 illuminaPE [options]
     ```
 
     **General**
@@ -72,7 +72,7 @@ Complete option reference for every ReSeq2 command. Select a tab to view the par
 === "queryProfile"
 
     ```
-    reseq queryProfile [options]
+    reseq2 queryProfile [options]
     ```
 
     **General**
@@ -98,7 +98,7 @@ Complete option reference for every ReSeq2 command. Select a tab to view the par
 === "replaceN"
 
     ```
-    reseq replaceN [options]
+    reseq2 replaceN [options]
     ```
 
     **General**
@@ -121,7 +121,7 @@ Complete option reference for every ReSeq2 command. Select a tab to view the par
 === "seqToIllumina"
 
     ```
-    reseq seqToIllumina [options]
+    reseq2 seqToIllumina [options]
     ```
 
     **General**
@@ -154,7 +154,7 @@ Complete option reference for every ReSeq2 command. Select a tab to view the par
 === "convertProfile"
 
     ```
-    reseq convertProfile [options]
+    reseq2 convertProfile [options]
     ```
 
     **General**

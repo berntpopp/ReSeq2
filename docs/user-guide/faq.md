@@ -19,4 +19,4 @@ Frequently asked questions about ReSeq2.
     Lowering the `--maxFragLen` parameter most likely helps in this situation, because sequences that are not at least 100 bases longer than this parameter are excluded in any case.
 
     !!! warning
-        Check that you are not truncating your fragment length distribution by setting `--maxFragLen` too low. Inspect the fragment length bias output with `reseq queryProfile --fragLenBias` to verify.
+        Check that you are not truncating your fragment length distribution by setting `--maxFragLen` too low. Inspect the fragment length bias output with `reseq2 queryProfile --fragLenBias` to verify.

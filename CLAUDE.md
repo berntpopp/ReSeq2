@@ -22,7 +22,7 @@ make changelog          # Generate CHANGELOG.md via git-cliff
 pre-commit run --all-files  # Run all pre-commit hooks
 ```
 
-Tests run via a separate `reseq_test` binary using CTest. GoogleTest filter syntax works: `build/bin/reseq_test --gtest_filter="SimulatorTest.*"`. Tests must run sequentially (not parallel) due to inter-test dependencies.
+Tests run via a separate `reseq2_test` binary using CTest. GoogleTest filter syntax works: `build/bin/reseq2_test --gtest_filter="SimulatorTest.*"`. Tests must run sequentially (not parallel) due to inter-test dependencies.
 
 The build requires: C++20 compiler (GCC 10+, Clang 12+), CMake 3.16+, Boost 1.48+ (serialization, program_options, filesystem, system, math), ZLIB, BZip2. SeqAn 2.5.2, GoogleTest, and NLopt are fetched automatically via FetchContent (or found via `find_package()` if installed). Python bindings are OFF by default (`-DRESEQ_BUILD_PYTHON=ON` requires SWIG 3+ and python3-dev).
 
@@ -44,7 +44,7 @@ ReSeq2 is a bioinformatics tool that learns error/quality profiles from real Ill
 
 One CMake static library + two executables:
 
-**`reseq_lib`** (static) — all production source:
+**`reseq2_lib`** (static) — all production source:
 - `DataStats` — top-level aggregator that orchestrates all sub-stats
 - `AdapterStats`, `CoverageStats`, `ErrorStats`, `FragmentDistributionStats`, `FragmentDuplicationStats`, `QualityStats`, `TileStats` — each models a specific aspect of sequencing
 - `Reference` — reference genome loading, surrounding context, excluded regions
@@ -55,9 +55,9 @@ One CMake static library + two executables:
 - `ProbabilityEstimates` — Iterative Proportional Fitting (IPF) for multi-dimensional probability tables
 - `Simulator` — block-based read simulation engine with threading support
 
-**`reseq`** — thin CLI executable linking `reseq_lib`
+**`reseq2`** — thin CLI executable linking `reseq2_lib`
 
-**`reseq_test`** — test executable linking `reseq_lib` + GoogleTest
+**`reseq2_test`** — test executable linking `reseq2_lib` + GoogleTest
 
 ### External Dependencies
 
@@ -65,11 +65,11 @@ SeqAn 2.5.2 (bioinformatics, header-only) is resolved via `find_package()` or `F
 
 ### Test Structure
 
-Each component has a `*Test.cpp` / `*Test.h` pair inheriting from `BasicTestClass.hpp` (which extends `::testing::Test`). Test data lives in `test/` (E. coli and Drosophila references, BAMs, adapters). Tests are compiled into the `reseq_test` binary and run via CTest (`make test` or `ctest --output-on-failure`). GoogleTest filter syntax: `build/bin/reseq_test --gtest_filter="SimulatorTest.*"`.
+Each component has a `*Test.cpp` / `*Test.h` pair inheriting from `BasicTestClass.hpp` (which extends `::testing::Test`). Test data lives in `test/` (E. coli and Drosophila references, BAMs, adapters). Tests are compiled into the `reseq2_test` binary and run via CTest (`make test` or `ctest --output-on-failure`). GoogleTest filter syntax: `build/bin/reseq2_test --gtest_filter="SimulatorTest.*"`.
 
 ### Versioning
 
-Single source of truth: `VERSION` file (currently `1.1.0`). CMake reads it at configure time. `CMakeConfig.h.in` generates version macros including `RESEQ_GIT_VERSION` from `git describe`.
+Single source of truth: `VERSION` file (currently `2.0.0`). CMake reads it at configure time. `CMakeConfig.h.in` generates version macros including `RESEQ_GIT_VERSION` from `git describe`.
 
 ## Code Style
 

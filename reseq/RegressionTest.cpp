@@ -137,8 +137,8 @@ TEST_F(RegressionTest, BareReseqExitCode) {
 
 TEST_F(RegressionTest, BareReseqOutput) {
     std::string stderr_out = RunReseqCaptureStderr("");
-    EXPECT_NE(std::string::npos, stderr_out.find("reseq <command>"))
-        << "Bare reseq should print usage containing 'reseq <command>', got:\n"
+    EXPECT_NE(std::string::npos, stderr_out.find("reseq2 <command>"))
+        << "Bare reseq2 should print usage containing 'reseq2 <command>', got:\n"
         << stderr_out;
 }
 

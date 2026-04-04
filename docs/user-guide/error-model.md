@@ -13,7 +13,7 @@ Use `seqToIllumina` instead of `illuminaPE` when:
 ## Basic Command
 
 ```bash
-reseq seqToIllumina -j 2 \
+reseq2 seqToIllumina -j 2 \
   -i my_sequences.fa \
   -o my_simulated_reads.fq \
   -s my_stats_profile.reseq
@@ -41,7 +41,7 @@ Each input sequence must provide all the information needed by the error and qua
 :   The nucleotide sequence to which errors and qualities will be added. It may only contain `A`, `C`, `G`, or `T`.
 
     !!! warning
-        Ns are not permitted in the input sequence. Ambiguous bases must be resolved consistently for all reads from a given reference position. Use [`reseq replaceN`](commands.md#replacen) to pre-process your reference.
+        Ns are not permitted in the input sequence. Ambiguous bases must be resolved consistently for all reads from a given reference position. Use [`reseq2 replaceN`](commands.md#replacen) to pre-process your reference.
 
 **`{error tendencies}`**
 :   Must be the same length as the sequence. Encodes the dominant systematic error at each position. All bases stemming from the same position and strand in the reference must have identical values. For insertions specific to one read, use `N`.
@@ -57,7 +57,7 @@ Each input sequence must provide all the information needed by the error and qua
 To obtain the error tendencies and rates needed for your input sequences, generate a systematic error file from a stats profile:
 
 ```bash
-reseq illuminaPE \
+reseq2 illuminaPE \
   -r my_reference.fa \
   -s my_stats_profile.reseq \
   --stopAfterEstimation \

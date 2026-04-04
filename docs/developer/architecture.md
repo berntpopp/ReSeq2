@@ -8,9 +8,9 @@ The CMake build produces one static library and two executables:
 
 ```mermaid
 graph LR
-    LIB["reseq_lib<br/><i>static library</i>"]
-    CLI["reseq<br/><i>CLI executable</i>"]
-    TEST["reseq_test<br/><i>test executable</i>"]
+    LIB["reseq2_lib<br/><i>static library</i>"]
+    CLI["reseq2<br/><i>CLI executable</i>"]
+    TEST["reseq2_test<br/><i>test executable</i>"]
     GT["GoogleTest"]
 
     LIB --> CLI
@@ -18,9 +18,9 @@ graph LR
     GT --> TEST
 ```
 
-- **`reseq_lib`** --- Static library containing all production source code.
-- **`reseq`** --- Thin CLI executable that links `reseq_lib` and dispatches to commands.
-- **`reseq_test`** --- Test executable linking `reseq_lib` and GoogleTest.
+- **`reseq2_lib`** --- Static library containing all production source code.
+- **`reseq2`** --- Thin CLI executable that links `reseq2_lib` and dispatches to commands.
+- **`reseq2_test`** --- Test executable linking `reseq2_lib` and GoogleTest.
 
 ## Commands
 
@@ -36,7 +36,7 @@ The entry point is `reseq/main.cpp`, which parses the sub-command and delegates:
 
 ## Core Components
 
-All components live in `reseq/` and are compiled into `reseq_lib`.
+All components live in `reseq/` and are compiled into `reseq2_lib`.
 
 ### Statistics Collection
 
@@ -133,7 +133,7 @@ All test classes inherit from `BasicTestClass.hpp`, which extends `::testing::Te
 
 **Test data** lives in `test/` and includes E. coli and Drosophila reference genomes, BAM files, and adapter sequences. The `test/download_test_data.sh` script fetches large test files that are not checked into the repository.
 
-Tests are compiled into the single `reseq_test` binary and run via CTest. See [Building](building.md#running-tests) for details on running and filtering tests.
+Tests are compiled into the single `reseq2_test` binary and run via CTest. See [Building](building.md#running-tests) for details on running and filtering tests.
 
 ## Versioning
 

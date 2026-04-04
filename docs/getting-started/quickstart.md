@@ -24,7 +24,7 @@ bowtie2 -p 32 -X 2000 -x my_reference \
 The simplest way to simulate is a single `illuminaPE` command that runs all three stages --- stats collection, probability estimation, and simulation:
 
 ```bash
-reseq illuminaPE -j 32 \
+reseq2 illuminaPE -j 32 \
   -r my_reference.fa \
   -b my_mappings.bam \
   -1 my_simulated_data_1.fq \
@@ -40,7 +40,7 @@ For large projects you may want to run each stage independently, for example to 
 === "1. Collect Stats"
 
     ```bash
-    reseq illuminaPE -j 32 \
+    reseq2 illuminaPE -j 32 \
       -r my_reference.fa \
       -b my_mappings.bam \
       --statsOnly
@@ -51,7 +51,7 @@ For large projects you may want to run each stage independently, for example to 
 === "2. Estimate Probabilities"
 
     ```bash
-    reseq illuminaPE -j 32 \
+    reseq2 illuminaPE -j 32 \
       -s my_mappings.bam.reseq \
       --stopAfterEstimation
     ```
@@ -61,7 +61,7 @@ For large projects you may want to run each stage independently, for example to 
 === "3. Simulate Reads"
 
     ```bash
-    reseq illuminaPE -j 32 \
+    reseq2 illuminaPE -j 32 \
       -R my_reference.fa \
       -s my_mappings.bam.reseq \
       --ipfIterations 0 \
@@ -76,7 +76,7 @@ For large projects you may want to run each stage independently, for example to 
 To simulate diploid genomes or populations, provide a VCF file with the `-V` flag:
 
 ```bash
-reseq illuminaPE -j 32 \
+reseq2 illuminaPE -j 32 \
   -r my_reference.fa \
   -b my_mappings.bam \
   -V my_variation.vcf \
@@ -87,7 +87,7 @@ reseq illuminaPE -j 32 \
 Or, when simulating from a pre-built profile:
 
 ```bash
-reseq illuminaPE -j 32 \
+reseq2 illuminaPE -j 32 \
   -R my_reference.fa \
   -s my_mappings.bam.reseq \
   -V my_variation.vcf \
@@ -110,7 +110,7 @@ bowtie2 -p 32 -X 2000 -x my_reference \
 Then enable tiles during stats collection:
 
 ```bash
-reseq illuminaPE -j 32 \
+reseq2 illuminaPE -j 32 \
   -r my_reference.fa \
   -b my_mappings.bam \
   --tiles \

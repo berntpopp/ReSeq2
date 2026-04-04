@@ -23,7 +23,7 @@ Use the `convertProfile` command to convert existing profile files.
 === "Binary to text"
 
     ```bash
-    reseq convertProfile -s my_mappings.bam.reseq --textFormat
+    reseq2 convertProfile -s my_mappings.bam.reseq --textFormat
     ```
 
     This overwrites the input file with the text-format version.
@@ -31,7 +31,7 @@ Use the `convertProfile` command to convert existing profile files.
 === "Text to binary"
 
     ```bash
-    reseq convertProfile -s my_mappings.bam.reseq
+    reseq2 convertProfile -s my_mappings.bam.reseq
     ```
 
     Without `--textFormat`, the default binary format is used.
@@ -39,7 +39,7 @@ Use the `convertProfile` command to convert existing profile files.
 === "Specify output path"
 
     ```bash
-    reseq convertProfile -s input.reseq -o output.reseq --textFormat
+    reseq2 convertProfile -s input.reseq -o output.reseq --textFormat
     ```
 
     Write to a different file instead of overwriting.
@@ -47,7 +47,7 @@ Use the `convertProfile` command to convert existing profile files.
 Probability files (`.reseq.ipf`) can be converted the same way using `-p` and `-P`:
 
 ```bash
-reseq convertProfile -p my_mappings.bam.reseq.ipf -P output.reseq.ipf --textFormat
+reseq2 convertProfile -p my_mappings.bam.reseq.ipf -P output.reseq.ipf --textFormat
 ```
 
 ## Generating Both Formats at Once
@@ -55,7 +55,7 @@ reseq convertProfile -p my_mappings.bam.reseq.ipf -P output.reseq.ipf --textForm
 During stats collection, use `--bothFormats` to produce both binary and text profiles simultaneously. The alternate format gets a `.text` or `.bin` suffix:
 
 ```bash
-reseq illuminaPE -j 32 -r my_reference.fa -b my_mappings.bam \
+reseq2 illuminaPE -j 32 -r my_reference.fa -b my_mappings.bam \
   --statsOnly --bothFormats
 ```
 

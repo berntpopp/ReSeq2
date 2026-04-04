@@ -29,7 +29,7 @@ Run the test suite to verify the build:
 ctest --test-dir build --output-on-failure
 ```
 
-The executable will be at `build/bin/reseq`.
+The executable will be at `build/bin/reseq2`.
 
 ## System-wide Installation
 

@@ -95,7 +95,7 @@ Standard FASTQ format encoding position-specific systematic errors for a referen
 Generate systematic errors for a reference with:
 
 ```bash
-reseq illuminaPE -r my_reference.fa -s my_profile.reseq \
+reseq2 illuminaPE -r my_reference.fa -s my_profile.reseq \
   --stopAfterEstimation --writeSysError my_systematic_errors.fq
 ```
 
