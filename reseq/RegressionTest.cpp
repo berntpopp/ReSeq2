@@ -379,10 +379,11 @@ TEST_F(RegressionTest, SeqToIlluminaOver10kReads) {
     // 3. Error-path deadlock: ApplyErrorsAndQualityToFastaInput failure skipped
     //    WriteSingleReads, leaving written_blocks_ stuck. (Preexisting)
 
-    auto profile = ZenodoProfile();
-    if (profile.empty()) {
-        GTEST_SKIP() << "Zenodo test data not available (run test/download_test_data.sh)";
-    }
+    // Use the small ecoli profile (fast IPF) rather than the large Zenodo profile.
+    // The bug is in ErrorModelOnlyThread/IncrementBlockPos — it triggers regardless
+    // of which profile is used, and the ecoli profile keeps CI fast.
+    auto profile = GenerateEcoliProfile();
+    ASSERT_TRUE(std::filesystem::exists(profile)) << "Failed to generate ecoli profile";
 
     // Generate 12,000 Wessim-style fragments (crosses the 10k batch boundary)
     const int num_frags = 12000;
@@ -407,16 +408,11 @@ TEST_F(RegressionTest, SeqToIlluminaOver10kReads) {
 
     auto output_fq = tmp_dir_ / "out_12000.fq";
 
-    // Run seqToIllumina — before the fix this would segfault or produce empty output.
-    // Copy the profile to tmp_dir_ so seqToIllumina's default IPF path (<statsIn>.ipf)
-    // does not find the non-portable Zenodo .ipf file, forcing fresh estimation.
-    auto local_profile = tmp_dir_ / "profile.reseq";
-    std::filesystem::copy_file(profile, local_profile);
     std::string args = "seqToIllumina"
                        " -j 1"
                        " --ipfIterations 1"
                        " -s " +
-                       local_profile.string() + " -i " + input_fa.string() + " -o " + output_fq.string() + " --seed 42";
+                       profile.string() + " -i " + input_fa.string() + " -o " + output_fq.string() + " --seed 42";
 
     int rc = RunReseqExitOnly(args);
     EXPECT_EQ(0, rc) << "seqToIllumina should exit 0";
