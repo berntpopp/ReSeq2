@@ -631,7 +631,7 @@ void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
                     ("reseq_errorpath_" + std::to_string(getpid()) + "_" +
                      std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".fq");
     string tmp_file = tmp_path.string();
-    seqan::open(test_->dest_.at(0), tmp_file.c_str());
+    ASSERT_TRUE(seqan::open(test_->dest_.at(0), tmp_file.c_str())) << "Failed to open temp file: " << tmp_file;
 
     atomic<bool> block1_returned(false);
     atomic<bool> block1_saw_error(false);
