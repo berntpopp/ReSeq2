@@ -408,13 +408,15 @@ TEST_F(RegressionTest, SeqToIlluminaOver10kReads) {
     auto output_fq = tmp_dir_ / "out_12000.fq";
 
     // Run seqToIllumina — before the fix this would segfault or produce empty output.
-    // Use --ipfIterations 1 for fast estimation; precomputed .ipf files use
-    // non-portable binary serialization and fail across different builds.
+    // Copy the profile to tmp_dir_ so seqToIllumina's default IPF path (<statsIn>.ipf)
+    // does not find the non-portable Zenodo .ipf file, forcing fresh estimation.
+    auto local_profile = tmp_dir_ / "profile.reseq";
+    std::filesystem::copy_file(profile, local_profile);
     std::string args = "seqToIllumina"
                        " -j 1"
                        " --ipfIterations 1"
                        " -s " +
-                       profile.string() + " -i " + input_fa.string() + " -o " + output_fq.string() + " --seed 42";
+                       local_profile.string() + " -i " + input_fa.string() + " -o " + output_fq.string() + " --seed 42";
 
     int rc = RunReseqExitOnly(args);
     EXPECT_EQ(0, rc) << "seqToIllumina should exit 0";
