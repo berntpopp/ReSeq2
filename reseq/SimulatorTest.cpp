@@ -666,16 +666,15 @@ void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
             block1_saw_error = !success;
         });
 
-    // Wait for block1 to signal it has entered its wait
+    // Wait for block1 to signal it has entered WriteSingleReads setup
     {
         unique_lock<mutex> lk(barrier_mtx);
         barrier_cv.wait(lk, [&block1_entered_wait] { return block1_entered_wait; });
     }
 
-    // Small yield to ensure WriteSingleReads' internal wait is entered
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-    // Verify the thread has not already completed (it should be blocked)
+    // Verify the thread has not already completed before we trigger the error.
+    // The thread signals the barrier before entering WriteSingleReads' cv wait,
+    // so if it already returned, the deadlock fix is not being tested.
     EXPECT_FALSE(block1_returned.load()) << "Block 1 thread returned before the simulated error was triggered";
 
     // Simulate the error path from ErrorModelOnlyThread: set error flag and notify
