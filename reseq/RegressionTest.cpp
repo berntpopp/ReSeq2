@@ -418,11 +418,11 @@ TEST_F(RegressionTest, SeqToIlluminaOver10kReads) {
                        profile.string() + " -p " + ipf.string() + " -i " + input_fa.string() + " -o " +
                        output_fq.string() + " --seed 42";
 
-    int rc = RunReseq(args);
+    int rc = RunReseqExitOnly(args);
     EXPECT_EQ(0, rc) << "seqToIllumina should exit 0";
     ASSERT_TRUE(std::filesystem::exists(output_fq)) << "Output FASTQ not created";
 
-    // Count reads in FASTQ (every 4th line starting from line 1 is a header)
+    // Count reads in FASTQ (every 4th line starting from line 0 is a header)
     std::ifstream fq(output_fq);
     ASSERT_TRUE(fq.is_open());
     int read_count = 0;

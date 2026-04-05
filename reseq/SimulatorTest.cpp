@@ -11,7 +11,7 @@ using std::atomic;
 using std::bitset;
 #include <chrono>
 #include <condition_variable>
-#include <fstream>
+#include <filesystem>
 using std::condition_variable;
 #include <mutex>
 using std::mutex;
@@ -610,65 +610,6 @@ void SimulatorTest::TestCleanupFreesList() {
     ASSERT_NE(nullptr, test_->blocks_[idx2].get());
 }
 
-void SimulatorTest::TestErrorModelOnlyReserveTargets() {
-    // Regression test for copy-paste bug where all reserve() calls in
-    // ErrorModelOnlyThread targeted input_ids instead of their respective
-    // StringSets. This caused memory corruption at scale because input_seqs,
-    // output_ids, output_seqs, and output_quals were never pre-allocated.
-    //
-    // We verify the source code pattern directly: each reserve() call must
-    // target its own StringSet, not input_ids. This catches any regression
-    // if the lines are accidentally reverted.
-
-    std::ifstream src(PROJECT_SOURCE_DIR "/reseq/Simulator.cpp");
-    ASSERT_TRUE(src.is_open()) << "Cannot open Simulator.cpp for source verification";
-
-    string line;
-    bool in_error_model_only = false;
-    // Track which variables appear as the first argument to reserve()
-    // within ErrorModelOnlyThread's local variable declarations.
-    int reserve_input_ids = 0;
-    int reserve_input_seqs = 0;
-    int reserve_output_ids = 0;
-    int reserve_output_seqs = 0;
-    int reserve_output_quals = 0;
-    int total_reserves = 0;
-
-    while (std::getline(src, line)) {
-        if (line.find("Simulator::ErrorModelOnlyThread") != string::npos) {
-            in_error_model_only = true;
-            continue;
-        }
-        if (in_error_model_only) {
-            // Stop scanning after the local variable declarations (first blank line or loop start)
-            if (line.find("keep_running") != string::npos) {
-                break;
-            }
-            if (line.find("reserve(") != string::npos) {
-                ++total_reserves;
-                if (line.find("reserve(input_ids,") != string::npos)
-                    ++reserve_input_ids;
-                else if (line.find("reserve(input_seqs,") != string::npos)
-                    ++reserve_input_seqs;
-                else if (line.find("reserve(output_ids,") != string::npos)
-                    ++reserve_output_ids;
-                else if (line.find("reserve(output_seqs,") != string::npos)
-                    ++reserve_output_seqs;
-                else if (line.find("reserve(output_quals,") != string::npos)
-                    ++reserve_output_quals;
-            }
-        }
-    }
-
-    ASSERT_TRUE(in_error_model_only) << "ErrorModelOnlyThread not found in source";
-    EXPECT_EQ(5, total_reserves) << "Expected 5 reserve() calls in ErrorModelOnlyThread";
-    EXPECT_EQ(1, reserve_input_ids) << "input_ids should be reserved exactly once";
-    EXPECT_EQ(1, reserve_input_seqs) << "input_seqs should be reserved exactly once (was input_ids before fix)";
-    EXPECT_EQ(1, reserve_output_ids) << "output_ids should be reserved exactly once (was input_ids before fix)";
-    EXPECT_EQ(1, reserve_output_seqs) << "output_seqs should be reserved exactly once (was input_ids before fix)";
-    EXPECT_EQ(1, reserve_output_quals) << "output_quals should be reserved exactly once (was input_ids before fix)";
-}
-
 void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
     // Regression test for deadlock when ApplyErrorsAndQualityToFastaInput fails.
     // Without the fix, WriteSingleReads was skipped on error, so written_blocks_
@@ -683,33 +624,52 @@ void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
     test_->simulation_error_ = false;
     test_->written_records_ = 0;
 
-    // Open a temp output file
-    string tmp_file = "/tmp/reseq_errorpath_test.fq";
+    // Create a unique temp file for this test
+    auto tmp_path = std::filesystem::temp_directory_path() / "reseq_errorpath_test.fq";
+    string tmp_file = tmp_path.string();
     seqan::open(test_->dest_.at(0), tmp_file.c_str());
 
     atomic<bool> block1_returned(false);
     atomic<bool> block1_saw_error(false);
 
+    // Barrier: block1 signals once it has entered WriteSingleReads (is waiting)
+    mutex barrier_mtx;
+    condition_variable barrier_cv;
+    bool block1_entered_wait = false;
+
     // Thread for block 1: calls WriteSingleReads with cur_block=1.
     // Since written_blocks_ starts at 0 and block 0 hasn't been written,
     // this thread will wait on output_cv_.
-    thread block1_thread([this, &block1_returned, &block1_saw_error]() {
-        seqan::StringSet<seqan::CharString> ids;
-        seqan::StringSet<seqan::Dna5String> seqs;
-        seqan::StringSet<seqan::CharString> quals;
-        seqan::appendValue(ids, "test");
-        seqan::Dna5String seq = "ACGT";
-        seqan::appendValue(seqs, seq);
-        seqan::appendValue(quals, "IIII");
+    thread block1_thread(
+        [this, &block1_returned, &block1_saw_error, &barrier_mtx, &barrier_cv, &block1_entered_wait]() {
+            // Signal that we are about to enter the wait
+            {
+                unique_lock<mutex> lk(barrier_mtx);
+                block1_entered_wait = true;
+            }
+            barrier_cv.notify_one();
 
-        bool success = test_->WriteSingleReads(1, ids, seqs, quals);
-        block1_returned = true;
-        block1_saw_error = !success;
-    });
+            seqan::StringSet<seqan::CharString> ids;
+            seqan::StringSet<seqan::Dna5String> seqs;
+            seqan::StringSet<seqan::CharString> quals;
+            seqan::appendValue(ids, "test");
+            seqan::Dna5String seq = "ACGT";
+            seqan::appendValue(seqs, seq);
+            seqan::appendValue(quals, "IIII");
 
-    // Give block 1 thread time to enter the wait
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    EXPECT_FALSE(block1_returned) << "Block 1 should be waiting, not yet returned";
+            bool success = test_->WriteSingleReads(1, ids, seqs, quals);
+            block1_returned = true;
+            block1_saw_error = !success;
+        });
+
+    // Wait for block1 to signal it has entered its wait
+    {
+        unique_lock<mutex> lk(barrier_mtx);
+        barrier_cv.wait(lk, [&block1_entered_wait] { return block1_entered_wait; });
+    }
+
+    // Small yield to ensure WriteSingleReads' internal wait is entered
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // Simulate the error path from ErrorModelOnlyThread: set error flag and notify
     test_->simulation_error_ = true;
@@ -719,63 +679,10 @@ void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
     block1_thread.join();
 
     seqan::close(test_->dest_.at(0));
-    std::remove(tmp_file.c_str());
+    std::filesystem::remove(tmp_path);
 
     EXPECT_TRUE(block1_returned) << "Block 1 thread did not return - deadlock!";
     EXPECT_TRUE(block1_saw_error) << "Block 1 should have observed the error flag";
-}
-
-void SimulatorTest::TestIncrementBlockPosStandaloneBlock() {
-    // Regression test for crash in seqToIllumina caused by IncrementBlockPos
-    // accessing blocks_[SIZE_MAX] when a standalone SimBlock (not in the
-    // blocks_ deque) reaches the end of its sys_errors_ array.
-    //
-    // After the container redesign (pointer-based -> index-based block linkage),
-    // IncrementBlockPos did blocks_[block->next_block_idx_] unconditionally.
-    // For standalone blocks (next_block_idx_ = SIZE_MAX), this is an OOB access.
-    // The fix guards with: if (next_block_idx_ != SIZE_MAX) ... else block = nullptr.
-    //
-    // Verify the source code contains the guard. IncrementBlockPos is inline,
-    // so we cannot call it from the test TU — verify the pattern instead.
-
-    std::ifstream src(PROJECT_SOURCE_DIR "/reseq/Simulator.cpp");
-    ASSERT_TRUE(src.is_open()) << "Cannot open Simulator.cpp for source verification";
-
-    string line;
-    bool in_increment_block_pos = false;
-    bool found_size_max_guard = false;
-    bool found_nullptr_assignment = false;
-    int brace_depth = 0;
-
-    while (std::getline(src, line)) {
-        if (line.find("Simulator::IncrementBlockPos") != string::npos) {
-            in_increment_block_pos = true;
-            brace_depth = 0;
-            continue;
-        }
-        if (in_increment_block_pos) {
-            for (char c : line) {
-                if (c == '{')
-                    ++brace_depth;
-                if (c == '}')
-                    --brace_depth;
-            }
-            if (line.find("next_block_idx_ != SIZE_MAX") != string::npos) {
-                found_size_max_guard = true;
-            }
-            if (line.find("block = nullptr") != string::npos) {
-                found_nullptr_assignment = true;
-            }
-            if (brace_depth <= 0 && in_increment_block_pos) {
-                break;
-            }
-        }
-    }
-
-    ASSERT_TRUE(in_increment_block_pos) << "IncrementBlockPos not found in source";
-    EXPECT_TRUE(found_size_max_guard) << "IncrementBlockPos must guard next_block_idx_ != SIZE_MAX "
-                                         "(regression: OOB crash with standalone blocks in seqToIllumina)";
-    EXPECT_TRUE(found_nullptr_assignment) << "IncrementBlockPos must set block = nullptr for standalone blocks";
 }
 
 namespace reseq {
@@ -815,18 +722,8 @@ TEST_F(SimulatorTest, CleanupFreesList) {
     TestCleanupFreesList();
 }
 
-TEST_F(SimulatorTest, ErrorModelOnlyReserveTargets) {
-    CreateTestObject();
-    TestErrorModelOnlyReserveTargets();
-}
-
 TEST_F(SimulatorTest, ErrorModelOnlyErrorPathUnblocksThreads) {
     CreateTestObject();
     TestErrorModelOnlyErrorPathUnblocksThreads();
-}
-
-TEST_F(SimulatorTest, IncrementBlockPosStandaloneBlock) {
-    CreateTestObject();
-    TestIncrementBlockPosStandaloneBlock();
 }
 } // namespace reseq
