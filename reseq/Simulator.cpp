@@ -226,7 +226,11 @@ bool Simulator::Output(const SimPair& sim_reads) {
 
 inline void Simulator::IncrementBlockPos(uintSeqLen& block_pos, const SimBlock*& block, intVariantId& cur_var) {
     if (block->sys_errors_.size() <= ++block_pos) {
-        block = blocks_[block->next_block_idx_].get();
+        if (block->next_block_idx_ != SIZE_MAX) {
+            block = blocks_[block->next_block_idx_].get();
+        } else {
+            block = nullptr;
+        }
         block_pos = 0;
         cur_var = 0;
     }
@@ -371,7 +375,11 @@ bool Simulator::FillReadPart(SimRead& sim_read, uintTempSeq template_segment, ui
                     var_pos = 0;
                 }
                 if (0 == var_pos && block->sys_errors_.size() <= ++block_pos) {
-                    block = blocks_[block->next_block_idx_].get();
+                    if (block->next_block_idx_ != SIZE_MAX) {
+                        block = blocks_[block->next_block_idx_].get();
+                    } else {
+                        block = nullptr;
+                    }
                     block_pos = 0;
                     cur_var = 0;
                 }
@@ -2673,13 +2681,13 @@ void Simulator::ErrorModelOnlyThread(Simulator& self, SeqFileIn& org_seq_reader,
     StringSet<CharString> input_ids;
     reserve(input_ids, self.kBatchSizeErrorModelOnly, Exact());
     StringSet<DnaString> input_seqs;
-    reserve(input_ids, self.kBatchSizeErrorModelOnly, Exact());
+    reserve(input_seqs, self.kBatchSizeErrorModelOnly, Exact());
     StringSet<CharString> output_ids;
-    reserve(input_ids, self.kBatchSizeErrorModelOnly, Exact());
+    reserve(output_ids, self.kBatchSizeErrorModelOnly, Exact());
     StringSet<Dna5String> output_seqs;
-    reserve(input_ids, self.kBatchSizeErrorModelOnly, Exact());
+    reserve(output_seqs, self.kBatchSizeErrorModelOnly, Exact());
     StringSet<CharString> output_quals;
-    reserve(input_ids, self.kBatchSizeErrorModelOnly, Exact());
+    reserve(output_quals, self.kBatchSizeErrorModelOnly, Exact());
 
     bool keep_running = true;
     uintFragCount cur_block(0);
@@ -2710,6 +2718,10 @@ void Simulator::ErrorModelOnlyThread(Simulator& self, SeqFileIn& org_seq_reader,
                 // Write out modified sequences in same order as original sequences (taking into account
                 // multi-threading)
                 self.WriteSingleReads(cur_block, output_ids, output_seqs, output_quals);
+            } else {
+                // Signal error and unblock any threads waiting to write subsequent blocks
+                self.simulation_error_ = true;
+                self.output_cv_.notify_all();
             }
         }
     }

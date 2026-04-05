@@ -11,6 +11,9 @@ using std::atomic;
 using std::bitset;
 #include <chrono>
 #include <condition_variable>
+#include <filesystem>
+#include <sys/types.h>
+#include <unistd.h>
 using std::condition_variable;
 #include <mutex>
 using std::mutex;
@@ -609,6 +612,85 @@ void SimulatorTest::TestCleanupFreesList() {
     ASSERT_NE(nullptr, test_->blocks_[idx2].get());
 }
 
+void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
+    // Regression test for deadlock when ApplyErrorsAndQualityToFastaInput fails.
+    // Without the fix, WriteSingleReads was skipped on error, so written_blocks_
+    // was never incremented and threads waiting on output_cv_ would hang forever.
+    //
+    // We simulate this scenario: block 0 triggers an error (simulation_error_=true
+    // + notify_all), and block 1 is waiting in WriteSingleReads. Block 1 must
+    // wake up and observe the error instead of deadlocking.
+
+    // Reset state
+    test_->written_blocks_ = 0;
+    test_->simulation_error_ = false;
+    test_->written_records_ = 0;
+
+    // Create a unique temp file (include PID + timestamp to avoid parallel collisions)
+    auto tmp_path = std::filesystem::temp_directory_path() /
+                    ("reseq_errorpath_" + std::to_string(getpid()) + "_" +
+                     std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".fq");
+    string tmp_file = tmp_path.string();
+    ASSERT_TRUE(seqan::open(test_->dest_.at(0), tmp_file.c_str())) << "Failed to open temp file: " << tmp_file;
+
+    atomic<bool> block1_returned(false);
+    atomic<bool> block1_saw_error(false);
+
+    // Barrier: block1 signals once it has entered WriteSingleReads (is waiting)
+    mutex barrier_mtx;
+    condition_variable barrier_cv;
+    bool block1_entered_wait = false;
+
+    // Thread for block 1: calls WriteSingleReads with cur_block=1.
+    // Since written_blocks_ starts at 0 and block 0 hasn't been written,
+    // this thread will wait on output_cv_.
+    thread block1_thread(
+        [this, &block1_returned, &block1_saw_error, &barrier_mtx, &barrier_cv, &block1_entered_wait]() {
+            // Signal that we are about to enter the wait
+            {
+                unique_lock<mutex> lk(barrier_mtx);
+                block1_entered_wait = true;
+            }
+            barrier_cv.notify_one();
+
+            seqan::StringSet<seqan::CharString> ids;
+            seqan::StringSet<seqan::Dna5String> seqs;
+            seqan::StringSet<seqan::CharString> quals;
+            seqan::appendValue(ids, "test");
+            seqan::Dna5String seq = "ACGT";
+            seqan::appendValue(seqs, seq);
+            seqan::appendValue(quals, "IIII");
+
+            bool success = test_->WriteSingleReads(1, ids, seqs, quals);
+            block1_returned = true;
+            block1_saw_error = !success;
+        });
+
+    // Wait for block1 to signal it has entered WriteSingleReads setup
+    {
+        unique_lock<mutex> lk(barrier_mtx);
+        barrier_cv.wait(lk, [&block1_entered_wait] { return block1_entered_wait; });
+    }
+
+    // Verify the thread has not already completed before we trigger the error.
+    // The thread signals the barrier before entering WriteSingleReads' cv wait,
+    // so if it already returned, the deadlock fix is not being tested.
+    EXPECT_FALSE(block1_returned.load()) << "Block 1 thread returned before the simulated error was triggered";
+
+    // Simulate the error path from ErrorModelOnlyThread: set error flag and notify
+    test_->simulation_error_ = true;
+    test_->output_cv_.notify_all();
+
+    // Block 1 thread must now wake up and return
+    block1_thread.join();
+
+    seqan::close(test_->dest_.at(0));
+    std::filesystem::remove(tmp_path);
+
+    EXPECT_TRUE(block1_returned) << "Block 1 thread did not return - deadlock!";
+    EXPECT_TRUE(block1_saw_error) << "Block 1 should have observed the error flag";
+}
+
 namespace reseq {
 TEST_F(SimulatorTest, BasicFunctonality) {
     CreateTestObject();
@@ -644,5 +726,10 @@ TEST_F(SimulatorTest, PartnerLinkage) {
 TEST_F(SimulatorTest, CleanupFreesList) {
     CreateTestObject();
     TestCleanupFreesList();
+}
+
+TEST_F(SimulatorTest, ErrorModelOnlyErrorPathUnblocksThreads) {
+    CreateTestObject();
+    TestErrorModelOnlyErrorPathUnblocksThreads();
 }
 } // namespace reseq

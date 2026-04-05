@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <random>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -364,6 +365,82 @@ TEST_F(RegressionTest, EmptyBam) {
     // If the current code silently succeeds (rc==0), change this to EXPECT_EQ(0, rc)
     // and add a comment documenting it as a known behavioral issue.
     EXPECT_NE(0, rc) << "illuminaPE should report an error for empty BAM input";
+}
+
+TEST_F(RegressionTest, SeqToIlluminaOver10kReads) {
+    // Regression test for GitHub issue #4: seqToIllumina segfaults or produces
+    // empty output when processing >10,000 fragments. Three bugs were involved:
+    //
+    // 1. IncrementBlockPos crash: container redesign changed block linkage from
+    //    pointers (NULL) to indices (SIZE_MAX), but standalone blocks in the
+    //    seqToIllumina path caused blocks_[SIZE_MAX] OOB access. (Regression)
+    // 2. Copy-paste reserve: all 5 reserve() calls in ErrorModelOnlyThread
+    //    targeted input_ids instead of their respective StringSets. (Preexisting)
+    // 3. Error-path deadlock: ApplyErrorsAndQualityToFastaInput failure skipped
+    //    WriteSingleReads, leaving written_blocks_ stuck. (Preexisting)
+
+    // Use the small ecoli profile (fast IPF) rather than the large Zenodo profile.
+    // The bug is in ErrorModelOnlyThread/IncrementBlockPos — it triggers regardless
+    // of which profile is used, and the ecoli profile keeps CI fast.
+    auto profile = GenerateEcoliProfile();
+    ASSERT_TRUE(std::filesystem::exists(profile)) << "Failed to generate ecoli profile";
+
+    // Generate 12,000 Wessim-style fragments (crosses the 10k batch boundary)
+    const int num_frags = 12000;
+    const int read_len = 100;
+    auto input_fa = tmp_dir_ / "frags_12000.fa";
+    {
+        std::ofstream fa(input_fa);
+        ASSERT_TRUE(fa.is_open());
+        const char bases[] = "ACGT";
+        std::mt19937 rng(42);
+        std::string sys_seq(read_len, 'N');
+        std::string sys_qual(read_len, '!');
+        for (int i = 0; i < num_frags; ++i) {
+            std::string seq(read_len, 'A');
+            for (int j = 0; j < read_len; ++j) {
+                seq[j] = bases[rng() % 4];
+            }
+            int tmpl = (i % 2) + 1;
+            fa << ">read_" << i << " " << tmpl << ";300;" << sys_seq << ";" << sys_qual << "\n" << seq << "\n";
+        }
+    }
+
+    auto output_fq = tmp_dir_ / "out_12000.fq";
+
+    std::string args = "seqToIllumina"
+                       " -j 1"
+                       " --ipfIterations 1"
+                       " -s " +
+                       profile.string() + " -i " + input_fa.string() + " -o " + output_fq.string() + " --seed 42";
+
+    int rc = RunReseqExitOnly(args);
+    EXPECT_EQ(0, rc) << "seqToIllumina should exit 0";
+    ASSERT_TRUE(std::filesystem::exists(output_fq)) << "Output FASTQ not created";
+
+    // Count reads in FASTQ (every 4th line starting from line 0 is a header)
+    std::ifstream fq(output_fq);
+    ASSERT_TRUE(fq.is_open());
+    int read_count = 0;
+    std::string line;
+    int line_num = 0;
+    while (std::getline(fq, line)) {
+        if (line_num % 4 == 0) {
+            EXPECT_TRUE(line.size() > 0 && line[0] == '@')
+                << "FASTQ header at line " << line_num << " missing @ prefix";
+            ++read_count;
+        } else if (line_num % 4 == 2) {
+            EXPECT_EQ("+", line) << "FASTQ separator at line " << line_num << " is not +";
+        }
+        ++line_num;
+    }
+
+    EXPECT_EQ(0, line_num % 4) << "FASTQ has incomplete final record";
+    EXPECT_EQ(num_frags, read_count) << "Expected " << num_frags << " reads but got " << read_count
+                                     << " (if stuck at 10000, the batch boundary bug is back)";
+
+    // Must have crossed the 10k batch boundary
+    EXPECT_GT(read_count, 10000) << "Read count did not cross the 10k batch boundary";
 }
 
 } // namespace reseq
