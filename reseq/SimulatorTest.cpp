@@ -12,6 +12,8 @@ using std::bitset;
 #include <chrono>
 #include <condition_variable>
 #include <filesystem>
+#include <sys/types.h>
+#include <unistd.h>
 using std::condition_variable;
 #include <mutex>
 using std::mutex;
@@ -624,8 +626,10 @@ void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
     test_->simulation_error_ = false;
     test_->written_records_ = 0;
 
-    // Create a unique temp file for this test
-    auto tmp_path = std::filesystem::temp_directory_path() / "reseq_errorpath_test.fq";
+    // Create a unique temp file (include PID + timestamp to avoid parallel collisions)
+    auto tmp_path = std::filesystem::temp_directory_path() /
+                    ("reseq_errorpath_" + std::to_string(getpid()) + "_" +
+                     std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".fq");
     string tmp_file = tmp_path.string();
     seqan::open(test_->dest_.at(0), tmp_file.c_str());
 
@@ -670,6 +674,9 @@ void SimulatorTest::TestErrorModelOnlyErrorPathUnblocksThreads() {
 
     // Small yield to ensure WriteSingleReads' internal wait is entered
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // Verify the thread has not already completed (it should be blocked)
+    EXPECT_FALSE(block1_returned.load()) << "Block 1 thread returned before the simulated error was triggered";
 
     // Simulate the error path from ErrorModelOnlyThread: set error flag and notify
     test_->simulation_error_ = true;

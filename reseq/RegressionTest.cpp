@@ -383,10 +383,6 @@ TEST_F(RegressionTest, SeqToIlluminaOver10kReads) {
     if (profile.empty()) {
         GTEST_SKIP() << "Zenodo test data not available (run test/download_test_data.sh)";
     }
-    auto ipf = data_dir_ / "Hs-Nova-TruSeq.reseq.ipf";
-    if (!std::filesystem::exists(ipf)) {
-        GTEST_SKIP() << "Zenodo IPF file not available";
-    }
 
     // Generate 12,000 Wessim-style fragments (crosses the 10k batch boundary)
     const int num_frags = 12000;
@@ -411,18 +407,18 @@ TEST_F(RegressionTest, SeqToIlluminaOver10kReads) {
 
     auto output_fq = tmp_dir_ / "out_12000.fq";
 
-    // Run seqToIllumina — before the fix this would segfault or produce empty output
+    // Run seqToIllumina — before the fix this would segfault or produce empty output.
+    // Use --ipfIterations 1 for fast estimation; precomputed .ipf files use
+    // non-portable binary serialization and fail across different builds.
     std::string args = "seqToIllumina"
                        " -j 1"
+                       " --ipfIterations 1"
                        " -s " +
-                       profile.string() + " -p " + ipf.string() + " -i " + input_fa.string() + " -o " +
-                       output_fq.string() + " --seed 42";
+                       profile.string() + " -i " + input_fa.string() + " -o " + output_fq.string() + " --seed 42";
 
-    std::string stderr_out = RunReseqCaptureStderr(args);
-    // Re-run to get the actual exit code (CaptureStderr doesn't return it)
     int rc = RunReseqExitOnly(args);
-    EXPECT_EQ(0, rc) << "seqToIllumina exited with code " << rc << "\nstderr:\n" << stderr_out;
-    ASSERT_TRUE(std::filesystem::exists(output_fq)) << "Output FASTQ not created\nstderr:\n" << stderr_out;
+    EXPECT_EQ(0, rc) << "seqToIllumina should exit 0";
+    ASSERT_TRUE(std::filesystem::exists(output_fq)) << "Output FASTQ not created";
 
     // Count reads in FASTQ (every 4th line starting from line 0 is a header)
     std::ifstream fq(output_fq);
