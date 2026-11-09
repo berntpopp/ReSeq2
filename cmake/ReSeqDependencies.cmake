@@ -13,9 +13,12 @@ find_package(BZip2 REQUIRED)
 
 # --- Boost (required, system-provided) ---
 cmake_policy(SET CMP0057 NEW)
+# Boost.System is header-only since 1.69 and its stub library was removed in
+# 1.89, so only link it when it exists (older Boost).
 find_package(Boost 1.48.0 REQUIRED
-  filesystem iostreams math_c99 math_c99f math_c99l
-  math_tr1 math_tr1f math_tr1l program_options serialization system)
+  COMPONENTS filesystem iostreams math_c99 math_c99f math_c99l
+  math_tr1 math_tr1f math_tr1l program_options serialization
+  OPTIONAL_COMPONENTS system)
 
 # --- GoogleTest (dev-only, skipped when RESEQ_BUILD_TESTS=OFF) ---
 if(RESEQ_BUILD_TESTS)
